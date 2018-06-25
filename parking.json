@@ -1,1 +1,71 @@
-[{"model": "parking.client", "pk": 1, "fields": {"first_name": "Jose", "last_name": "Vargas", "nickname": "pepe", "document_number": "12341234", "is_member": false, "is_banned": false}}, {"model": "parking.vehicletype", "pk": 1, "fields": {"name": "Mototaxi", "payment_per_night": 2.5}}, {"model": "parking.vehicletype", "pk": 2, "fields": {"name": "Taxi", "payment_per_night": 3.5}}, {"model": "parking.vehicletype", "pk": 3, "fields": {"name": "Combi", "payment_per_night": 5.0}}, {"model": "parking.vehicle", "pk": 1, "fields": {"client": 1, "license_plate": "ABC-123", "vehicle_type": 1, "is_exonerated": false, "photo": "Selection_006.png"}}]
+[
+	{
+		"model": "parking.client",
+		"pk": 1,
+		"fields": {
+			"first_name": "Jose",
+			"last_name": "Vargas",
+			"nickname": "pepe",
+			"document_number": "12341234",
+			"is_member": false,
+			"is_banned": false
+		}
+	},
+	{
+		"model": "parking.vehicletype",
+		"pk": 1,
+		"fields": {
+			"name": "Mototaxi",
+			"payment_per_night": 2.5
+		}
+	},
+	{
+		"model": "parking.vehicletype",
+		"pk": 2,
+		"fields": {
+			"name": "Taxi",
+			"payment_per_night": 3.5
+		}
+	},
+	{
+		"model": "parking.vehicletype",
+		"pk": 3,
+		"fields": {
+			"name": "Combi",
+			"payment_per_night": 5
+		}
+	},
+	{
+		"model": "parking.vehicle",
+		"pk": 4,
+		"fields": {
+			"client": 1,
+			"license_plate": "ABC-123",
+			"vehicle_type": 3,
+			"is_exonerated": false,
+			"photo": "Selection_006.png"
+		}
+	},
+    {
+		"model": "parking.vehicle",
+		"pk": 5,
+		"fields": {
+			"client": 1,
+			"license_plate": "DFR-433",
+			"vehicle_type": 2,
+			"is_exonerated": false,
+			"photo": "Selection_006.png"
+		}
+	},
+    {
+		"model": "parking.vehicle",
+		"pk": 6,
+		"fields": {
+			"client": 1,
+			"license_plate": "FAP-435",
+			"vehicle_type": 1,
+			"is_exonerated": true,
+			"photo": "Selection_006.png"
+		}
+	}
+]

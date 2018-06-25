@@ -1,7 +1,98 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div>
-        <a href="{% url 'ticket.register' %}" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">add</i></a>
+    <div class="section">
+        <table class="highlight">
+            <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Placa</th>
+                <th>¿Pagó?</th>
+                <th>Hora de entrada</th>
+                <th>Hora de salida</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.vehicle.client }}</td>
+                    <td>{{ ticket.vehicle.license_plate }}</td>
+                    <td>{{ ticket.paid|yesno:'Si,No' }}</td>
+                    <td>{{ ticket.entry_time }}</td>
+                    <td>{{ ticket.departure_time|default_if_none:'' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
+    <div class="section">
+        {#        <button data-target="modal1" class="btn modal-trigger">Modal</button>#}
+        <button data-target="newModal" class="btn-floating btn-large waves-effect waves-light red btn modal-trigger"><i
+                class="material-icons">add</i></button>
+        {#        <a href="{% url 'ticket.register' %}" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">add</i></a>#}
+    </div>
+    <div id="newModal" class="modal modal-fixed-footer">
+        <div class="section">
+            <div class="row">
+                <div class="input-field col s12 m6 l6">
+                    <select id="vehicle" name="vehicle">
+                        {% for vehicle in vehicles %}
+                            <option value="{{ vehicle.pk }}">{{ vehicle.license_plate }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="vehicle">Vehiculos</label>
+                </div>
+                <div class="input-field col s12 m6 l6">
+                    <input readonly type="text" id="amount" name="amount"/>
+                    <label for="amount">Monto</label>
+                </div>
+                <div class="input-field col s12 m2">
+                    <label><input type="checkbox" id="paid" name="paid"/> <span>¿Pagó?</span> </label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <button class="btn waves-effect waves-light" type="button" name="action" id="new-button">Registrar
+                        <i class="material-icons right">send</i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% csrf_token %}
+    </div>
+{% endblock %}
+
+{% block extra-js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('.modal');
+            var instances = M.Modal.init(elems);
+        });
+        var url = "{% url 'vehicle.data' pk=0 %}";
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        });
+        $('#vehicle').change(function () {
+            $.get(url.replace('0', $(this).val()),
+                function (data) {
+                    $('#amount').focus();
+                    $('#amount').val(data.amount);
+                }
+            )
+        });
+
+        $('#new-button').click(function () {
+            $.post("{% url 'ticket.register' %}", {
+                vehicle: $('#vehicle').val(),
+                amount: $('#amount').val(),
+                paid: $('#paid').val()
+            }, function (data) {
+                alert("Bien");
+                M.Modal.getInstance($('#newModal')).close();
+            });
+        });
+    </script>
 {% endblock %}

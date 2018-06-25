@@ -7,11 +7,17 @@ from django.views import View
 from django.views.generic import TemplateView, FormView
 
 from parking.forms import RegisterTicketForm
-from parking.models import VehicleType, Vehicle
+from parking.models import VehicleType, Vehicle, Ticket
 
 
 class IndexView(TemplateView):
     template_name = 'index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        context['tickets'] = Ticket.objects.filter(departure_time__isnull=True)
+        context['vehicles'] = Vehicle.objects.all()
+        return context
 
 
 class RegisterTicketView(FormView):
@@ -20,9 +26,8 @@ class RegisterTicketView(FormView):
     success_url = '/'
 
     def form_valid(self, form):
-        form.cleaned_data['entry_time'] = now()
         form.save()
-        return super(RegisterTicketView, self).form_valid(form)
+        return JsonResponse({}, status=200)
 
 
 class VehicleView(TemplateView):
