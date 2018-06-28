@@ -37,7 +37,7 @@ class Vehicle(models.Model):
     license_plate = models.CharField(max_length=8)
     vehicle_type = models.ForeignKey(VehicleType)
     is_exonerated = models.BooleanField(default=False)
-    photo = models.ImageField()
+    photo = models.ImageField(null=True)
 
     class Meta:
         verbose_name = 'Vehiculo'

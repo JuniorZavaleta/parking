@@ -1,6 +1,20 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE>
+<html>
+<head>
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-{% block content %}
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+</head>
+<body>
+<div class="container" id="app">
+    {% csrf_token %}
+    {% verbatim %}
     <div class="section">
         <table class="highlight">
             <thead>
@@ -13,37 +27,32 @@
             </tr>
             </thead>
             <tbody>
-            {% for ticket in tickets %}
-                <tr>
-                    <td>{{ ticket.vehicle.client }}</td>
-                    <td>{{ ticket.vehicle.license_plate }}</td>
-                    <td>{{ ticket.paid|yesno:'Si,No' }}</td>
-                    <td>{{ ticket.entry_time }}</td>
-                    <td>{{ ticket.departure_time|default_if_none:'' }}</td>
-                </tr>
-            {% endfor %}
+            <tr v-for="ticket in tickets">
+                <td>{{ ticket.vehicle.client.first_name + " " + ticket.vehicle.client.last_name }}</td>
+                <td>{{ ticket.vehicle.license_plate }}</td>
+                <td>{{ ticket.paid ? 'Si' : 'No' }}</td>
+                <td>{{ ticket.entry_time }}</td>
+                <td>{{ ticket.departure_time }}</td>
+            </tr>
             </tbody>
         </table>
     </div>
     <div class="section">
-        {#        <button data-target="modal1" class="btn modal-trigger">Modal</button>#}
         <button data-target="newModal" class="btn-floating btn-large waves-effect waves-light red btn modal-trigger"><i
                 class="material-icons">add</i></button>
-        {#        <a href="{% url 'ticket.register' %}" class="btn-floating btn-large waves-effect waves-light red"><i class="material-icons">add</i></a>#}
     </div>
     <div id="newModal" class="modal modal-fixed-footer">
         <div class="section">
             <div class="row">
                 <div class="input-field col s12 m6 l6">
-                    <select id="vehicle" name="vehicle">
-                        {% for vehicle in vehicles %}
-                            <option value="{{ vehicle.pk }}">{{ vehicle.license_plate }}</option>
-                        {% endfor %}
+                    <select id="vehicle" name="vehicle" v-model="vehiclePkSelected">
+                        <option value="">Seleccione un vehiculo</option>
+                        <option v-for="vehicle in vehicles" :value="vehicle.pk">{{ vehicle.license_plate }}</option>
                     </select>
                     <label for="vehicle">Vehiculos</label>
                 </div>
-                <div class="input-field col s12 m6 l6">
-                    <input readonly type="text" id="amount" name="amount"/>
+                <div class="input-field col s12 m6 l6" v-show="vehiclePkSelected != 0">
+                    <input readonly type="text" id="amount" name="amount" :value="vehicleSelectedPayment"/>
                     <label for="amount">Monto</label>
                 </div>
                 <div class="input-field col s12 m2">
@@ -58,41 +67,72 @@
                 </div>
             </div>
         </div>
-        {% csrf_token %}
     </div>
-{% endblock %}
+    {% endverbatim %}
+</div>
 
-{% block extra-js %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var elems = document.querySelectorAll('.modal');
-            var instances = M.Modal.init(elems);
-        });
-        var url = "{% url 'vehicle.data' pk=0 %}";
-        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-        $.ajaxSetup({
-            beforeSend: function (xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        });
-        $('#vehicle').change(function () {
-            $.get(url.replace('0', $(this).val()),
-                function (data) {
-                    $('#amount').focus();
-                    $('#amount').val(data.amount);
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="{% static 'jquery.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems);
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems);
+    });
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            tickets: [],
+            vehicles: [],
+            vehiclePkSelected: 0,
+            vehicleSelectedPayment: 0,
+        },
+        watch: {
+            vehiclePkSelected: function (val, oldVal) {
+                if (val != 0) {
+                    var vehicleFiltered = this.vehicles.filter(v => v.pk == this.vehiclePkSelected);
+
+                    if (vehicleFiltered != null) {
+                        this.vehicleSelectedPayment = vehicleFiltered[0].vehicle_type.payment_per_night;
+                    }
                 }
-            )
-        });
+            }
+        },
+        mounted: function () {
+            console.info("mounted");
+            fetch("{% url 'ticket.today' %}")
+                .then(res => { return res.json() })
+                .then(data => { this.tickets = data });
+            fetch("{% url 'vehicle.list' %}")
+                .then(res => { return res.json() })
+                .then(data => { this.vehicles = data })
+                .then(options => { M.FormSelect.init(document.querySelectorAll('select')) });
+        }
+    });
 
-        $('#new-button').click(function () {
-            $.post("{% url 'ticket.register' %}", {
-                vehicle: $('#vehicle').val(),
-                amount: $('#amount').val(),
-                paid: $('#paid').val()
-            }, function (data) {
-                alert("Bien");
-                M.Modal.getInstance($('#newModal')).close();
-            });
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    });
+
+    $('#new-button').click(function () {
+        $.post("{% url 'ticket.register' %}", {
+            vehicle: $('#vehicle').val(),
+            amount: $('#amount').val(),
+            paid: $('#paid').val()
+        }, function (data) {
+            alert("Bien");
+            M.Modal.getInstance($('#newModal')).close();
         });
-    </script>
-{% endblock %}
+    });
+</script>
+</body>
+</html>
