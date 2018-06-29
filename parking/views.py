@@ -1,28 +1,15 @@
-import datetime
-
-from django.http import JsonResponse, Http404
-from django.utils.timezone import now
-from django.views.generic import TemplateView, FormView
+from django.utils import timezone
+from django.views.generic import TemplateView
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from parking.forms import RegisterTicketForm
-from parking.models import VehicleType, Vehicle, Ticket
+from parking.models import Vehicle, Ticket
 from parking.serializers import TicketSerializer, VehicleSerializer
 
 
 class IndexView(TemplateView):
     template_name = 'index.html'
-
-
-class RegisterTicketView(FormView):
-    template_name = 'form.html'
-    form_class = RegisterTicketForm
-    success_url = '/'
-
-    def form_valid(self, form):
-        form.save()
-        return JsonResponse({}, status=200)
 
 
 class VehicleView(APIView):
@@ -36,9 +23,15 @@ class VehicleView(APIView):
 class TicketListView(APIView):
 
     def get(self, request, format=None):
-        today = datetime.date.today()
-        # yesterday = today - datetime.timedelta(days=1)
-        yesterday = today - datetime.timedelta(days=7)
+        today = timezone.now()
+        yesterday = today - timezone.timedelta(days=1)
         tickets = Ticket.objects.filter(entry_time__range=[yesterday, today])
         serializer = TicketSerializer(tickets, many=True)
         return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = TicketSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

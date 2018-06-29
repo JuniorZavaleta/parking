@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 
 from parking.models import Ticket, Vehicle, VehicleType, Client
 
@@ -32,9 +33,14 @@ class VehicleVerboseSerializer(serializers.ModelSerializer):
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    vehicle = VehicleVerboseSerializer()
-    entry_time = serializers.DateTimeField(format="%d-%m-%Y %H:%M:%S")
+    vehicle = VehicleVerboseSerializer(read_only=True)
+    entry_time = serializers.DateTimeField(format="%d-%m-%Y %H:%M:%S", read_only=True)
+
+    def create(self, validated_data):
+        validated_data['vehicle_id'] = self.initial_data['vehicle_id']
+        ticket = Ticket.objects.create(**validated_data)
+        return ticket
 
     class Meta:
         model = Ticket
-        fields = ('vehicle', 'watchman', 'entry_time', 'departure_time', 'amount', 'paid')
+        fields = ('vehicle', 'watchman', 'entry_time', 'departure_time', 'amount', 'paid', 'vehicle_id')

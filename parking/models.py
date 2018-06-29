@@ -59,7 +59,7 @@ class Watchman(models.Model):
 
 
 class Ticket(models.Model):
-    vehicle = models.ForeignKey(Vehicle, null=True)
+    vehicle = models.ForeignKey(Vehicle)
     watchman = models.ForeignKey(Watchman, null=True)
     entry_time = models.DateTimeField(auto_now_add=True)
     departure_time = models.DateTimeField(null=True)

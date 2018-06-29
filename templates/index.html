@@ -61,9 +61,10 @@
             </div>
             <div class="row">
                 <div class="input-field col s12">
-                    <button class="btn waves-effect waves-light" type="button" name="action" id="new-button">Registrar
+                    <button class="btn waves-effect waves-light" type="button" v-on:click="register()">Registrar
                         <i class="material-icons right">send</i>
                     </button>
+                    <button class="btn waves-effect waves-light red darken-4" type="button" v-on:click="closeModal()">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -75,64 +76,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="{% static 'jquery.min.js' %}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var elems = document.querySelectorAll('select');
-        var instances = M.FormSelect.init(elems);
-    });
-    document.addEventListener('DOMContentLoaded', function () {
-        var elems = document.querySelectorAll('.modal');
-        var instances = M.Modal.init(elems);
-    });
-
-    var app = new Vue({
-        el: '#app',
-        data: {
-            tickets: [],
-            vehicles: [],
-            vehiclePkSelected: 0,
-            vehicleSelectedPayment: 0,
-        },
-        watch: {
-            vehiclePkSelected: function (val, oldVal) {
-                if (val != 0) {
-                    var vehicleFiltered = this.vehicles.filter(v => v.pk == this.vehiclePkSelected);
-
-                    if (vehicleFiltered != null) {
-                        this.vehicleSelectedPayment = vehicleFiltered[0].vehicle_type.payment_per_night;
-                    }
-                }
-            }
-        },
-        mounted: function () {
-            console.info("mounted");
-            fetch("{% url 'ticket.today' %}")
-                .then(res => { return res.json() })
-                .then(data => { this.tickets = data });
-            fetch("{% url 'vehicle.list' %}")
-                .then(res => { return res.json() })
-                .then(data => { this.vehicles = data })
-                .then(options => { M.FormSelect.init(document.querySelectorAll('select')) });
-        }
-    });
-
-    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-    $.ajaxSetup({
-        beforeSend: function (xhr, settings) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
-    });
-
-    $('#new-button').click(function () {
-        $.post("{% url 'ticket.register' %}", {
-            vehicle: $('#vehicle').val(),
-            amount: $('#amount').val(),
-            paid: $('#paid').val()
-        }, function (data) {
-            alert("Bien");
-            M.Modal.getInstance($('#newModal')).close();
-        });
-    });
-</script>
+<script src="{% static 'app.js' %}"></script>
 </body>
 </html>
