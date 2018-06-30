@@ -22,14 +22,15 @@ const app = new Vue({
         vehiclePkSelected: 0,
         vehicleSelectedPayment: 0,
         modal: {},
+        ticketSelected: undefined,
     },
     watch: {
         vehiclePkSelected: function (val, oldVal) {
             if (val != 0) {
-                const vehicleFiltered = this.vehicles.filter(v => v.pk == this.vehiclePkSelected);
+                const vehicleFiltered = this.vehicles.find(v => v.pk == this.vehiclePkSelected);
 
-                if (vehicleFiltered != null) {
-                    this.vehicleSelectedPayment = vehicleFiltered[0].vehicle_type.payment_per_night;
+                if (vehicleFiltered !== undefined) {
+                    this.vehicleSelectedPayment = vehicleFiltered.vehicle_type.payment_per_night;
                 }
             }
         }
@@ -70,6 +71,14 @@ const app = new Vue({
         closeModal: function () {
             this.modal.close();
         },
+        selectTicket: function(ticketPk, event) {
+            let lastTicketSelected = this.ticketSelected;
+            this.ticketSelected = this.tickets.find(t => t.pk == ticketPk);
+
+            if (this.ticketSelected === lastTicketSelected) {
+                this.ticketSelected = undefined;
+            }
+        }
     },
     mounted: function () {
         this.loadTickets();

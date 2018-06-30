@@ -10,6 +10,14 @@
 
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css">
+    <style>
+        tr {
+            cursor: pointer;
+        }
+        tr.selected {
+            background-color: rgba(242,242,242,0.5);
+        }
+    </style>
 </head>
 <body>
 <div class="container" id="app">
@@ -27,7 +35,9 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="ticket in tickets">
+            <tr v-for="ticket in tickets"
+                v-on:click="selectTicket(ticket.pk, $event)"
+                v-bind:class="{ selected: ticketSelected == ticket }">
                 <td>{{ ticket.vehicle.client.first_name + " " + ticket.vehicle.client.last_name }}</td>
                 <td>{{ ticket.vehicle.license_plate }}</td>
                 <td>{{ ticket.paid ? 'Si' : 'No' }}</td>
@@ -40,6 +50,8 @@
     <div class="section">
         <button data-target="newModal" class="btn-floating btn-large waves-effect waves-light red btn modal-trigger"><i
                 class="material-icons">add</i></button>
+        <button class="btn-floating btn-large waves-effect waves-light green btn"
+                v-show="ticketSelected != undefined && !ticketSelected.paid"><i class="material-icons">attach_money</i></button>
     </div>
     <div id="newModal" class="modal modal-fixed-footer">
         <div class="section">
